@@ -1,0 +1,25 @@
+signs:
+  MysteryBox: givePlayerItemsFromMysteryBox,takePlayerMoney,giveOwnerMoney
+  IMysteryBox: givePlayerItemsFromMysteryBox{infinite},takePlayerMoney,playerIsOp
+  MysteryBoxXP: givePlayerItemsFromMysteryBox{infinite},takePlayerXP,playerIsOp
+messages:
+  setup:
+    MysteryBox: You have created a MysteryBox sign that costs !price to buy !mysteryitems item(s)!
+    IMysteryBox: You have created a MysteryBox sign that costs !price to buy !mysteryitems item(s)!
+    MysteryBoxXP: You have created a MysteryBox sign that costs !xp levels to buy !mysteryitems item(s)!
+  confirm:
+    MysteryBox: Pay !price for !mysteryitems mystery item(s)?
+    IMysteryBox: Pay !price for !mysteryitems mystery item(s)?
+    MysteryBoxXP: Pay !xp levels for !mysteryitems mystery item(s)?
+  transaction:
+    MysteryBox: You paid !price for !mysteryitems mystery item(s)!
+    IMysteryBox: You paid !price for !mysteryitems mystery item(s)!
+    MysteryBoxXP: You paid !xp levels for !mysteryitems mystery item(s)!
+  transaction_owner:
+    MysteryBox: \!customer bought !mysteryitems mystery item(s) for !price.
+    IMysteryBox: ''
+    MysteryBoxXP: ''
+  help:
+    MysteryBox: The MysteryBox sign exchanges the customer's money for 1 or more random mystery item(s). The 2nd line is the number of mystery items they will get. The 3rd line can say whatever you like, and the price goes on the 4th. Punch the chest(s) with the !linkmaterial then the sign. The shop will continue to work as long as there are enough items to give.
+    IMysteryBox: The IMysteryBox sign exchanges the customer's money for 1 or more random mystery item(s) an infinate number of times. The 2nd line is the number of mystery items they will get. The 3rd line can say whatever you like, and the price goes on the 4th. Punch the chest(s) with the !linkmaterial then the sign.
+    MysteryBoxXP: The MysteryBoxXP sign exchanges the customer's XP for 1 or more random mystery item(s). The 2nd line is the number of mystery items they will get. The 3rd line is the cost in XP, and the 4th can say whatever you like. Punch the chest(s) with the !linkmaterial then the sign. The shop will continue to work as long as there are enough items to give.

@@ -1,0 +1,6 @@
+  name: SignShopMysteryBox
+  main: org.makershaven.signshopmysterybox.SignShopMysteryBox
+  api-version: "1.13"
+  version: "${project.version}"
+  depend: [SignShop]
+  authors: [Wargamer2010, Devinish, Weaves]
