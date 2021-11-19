@@ -12,6 +12,7 @@ import org.wargamer2010.signshop.util.itemUtil;
 import org.wargamer2010.signshop.util.signshopUtil;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -23,7 +24,7 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
             return false;
         }
 
-        ssArgs.setMessagePart("!mysteryitems", String.valueOf(Math.max(1, signshopUtil.getNumberFromLine(ssArgs.getSign().get(), 1).intValue())));
+        ssArgs.setMessagePart("!amount", String.valueOf(Math.max(1, signshopUtil.getNumberFromLine(ssArgs.getSign().get(), 1).intValue())));
         return true;
     }
 
@@ -35,7 +36,7 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
 
         bStockOK = mysteryItems.size() >= prizeAmount;
 
-        ssArgs.setMessagePart("!mysteryitems", String.valueOf(prizeAmount));
+        ssArgs.setMessagePart("!amount", String.valueOf(prizeAmount));
 
         if (!bStockOK)
             ssArgs.sendFailedRequirementsMessage("out_of_stock");
@@ -52,18 +53,19 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
     public Boolean runOperation(SignShopArguments ssArgs) {
         int prizeAmount = getPrizeAmount(ssArgs);
         List<ItemStack> mysteryItems = getItemsInContainables(ssArgs);
+        Collections.shuffle(mysteryItems, new Random(System.currentTimeMillis()));
         ItemStack[] prizes = new ItemStack[prizeAmount];
         for (int i = 0; i < prizeAmount; i++) {
-            ItemStack thisItemClone = mysteryItems.get(new Random(System.currentTimeMillis() + i).nextInt(mysteryItems.size())).clone();
-            thisItemClone.setAmount(1);
+            ItemStack thisItem = mysteryItems.get(new Random(System.currentTimeMillis() + i).nextInt(mysteryItems.size()));
+            thisItem.setAmount(1);
             boolean shopIsInfinite = ssArgs.isOperationParameter("infinite");
 
             if (shopIsInfinite) {
-                prizes[i] = thisItemClone;
+                prizes[i] = thisItem;
             }
             else {
-                if (removeItemFromContainables(ssArgs, thisItemClone)) {
-                    prizes[i] = thisItemClone;
+                if (removeItemFromContainables(ssArgs, thisItem)) {
+                    prizes[i] = thisItem;
                 }
                 else {
                     return false;
@@ -72,6 +74,7 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
 
         }
         ssArgs.getPlayer().get().givePlayerItems(prizes);
+        ssArgs.setMessagePart("!items",itemUtil.itemStackToString(prizes));
         return true;
     }
 
@@ -86,7 +89,13 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
             if (block.getState() instanceof InventoryHolder) {
                 InventoryHolder container = (InventoryHolder) block.getState();
                 for (ItemStack item : container.getInventory().getContents()) {
-                    if (item != null && item.getType() != Material.AIR) items.add(item);
+                    if (item != null && item.getType() != Material.AIR){
+                        ItemStack itemClone = item.clone();
+                        int itemStackAmount = itemClone.getAmount();
+                        for (int i = 1; i <= itemStackAmount ; i++) {
+                            items.add(itemClone);
+                        }
+                    }
                 }
             }
         }

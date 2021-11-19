@@ -4,19 +4,19 @@ signs:
   MysteryBoxXP: givePlayerItemsFromMysteryBox{infinite},takePlayerXP,playerIsOp
 messages:
   setup:
-    MysteryBox: You have created a MysteryBox sign that costs !price to buy !mysteryitems item(s)!
-    IMysteryBox: You have created a MysteryBox sign that costs !price to buy !mysteryitems item(s)!
-    MysteryBoxXP: You have created a MysteryBox sign that costs !xp levels to buy !mysteryitems item(s)!
+    MysteryBox: You have created a MysteryBox sign that costs !price to buy !amount item(s)!
+    IMysteryBox: You have created a MysteryBox sign that costs !price to buy !amount item(s)!
+    MysteryBoxXP: You have created a MysteryBox sign that costs !xp levels to buy !amount item(s)!
   confirm:
-    MysteryBox: Pay !price for !mysteryitems mystery item(s)?
-    IMysteryBox: Pay !price for !mysteryitems mystery item(s)?
-    MysteryBoxXP: Pay !xp levels for !mysteryitems mystery item(s)?
+    MysteryBox: Pay !price for !amount mystery item(s)?
+    IMysteryBox: Pay !price for !amount mystery item(s)?
+    MysteryBoxXP: Pay !xp levels for !amount mystery item(s)?
   transaction:
-    MysteryBox: You paid !price for !mysteryitems mystery item(s)!
-    IMysteryBox: You paid !price for !mysteryitems mystery item(s)!
-    MysteryBoxXP: You paid !xp levels for !mysteryitems mystery item(s)!
+    MysteryBox: You paid !price for !amount mystery item(s) consisting of the following item(s); !items!
+    IMysteryBox: You paid !price for !amount mystery item(s) consisting of the following item(s); !items!
+    MysteryBoxXP: You paid !xp levels for !amount mystery item(s) consisting of the following item(s); !items!
   transaction_owner:
-    MysteryBox: \!customer bought !mysteryitems mystery item(s) for !price.
+    MysteryBox: \!customer bought !amount mystery item(s) for !price, consisting of the following item(s); !items.
     IMysteryBox: ''
     MysteryBoxXP: ''
   help:
