@@ -5,16 +5,15 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.makershaven.signshopmysterybox.SignShopMysteryBox;
 import org.wargamer2010.signshop.configuration.SignShopConfig;
 import org.wargamer2010.signshop.operations.SignShopArguments;
 import org.wargamer2010.signshop.operations.SignShopOperation;
 import org.wargamer2010.signshop.util.itemUtil;
 import org.wargamer2010.signshop.util.signshopUtil;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.logging.Level;
 
 public class givePlayerItemsFromMysteryBox implements SignShopOperation {
     @Override
@@ -55,26 +54,32 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
         List<ItemStack> mysteryItems = getItemsInContainables(ssArgs);
         Collections.shuffle(mysteryItems, new Random(System.currentTimeMillis()));
         ItemStack[] prizes = new ItemStack[prizeAmount];
+
         for (int i = 0; i < prizeAmount; i++) {
             ItemStack thisItem = mysteryItems.get(new Random(System.currentTimeMillis() + i).nextInt(mysteryItems.size()));
             thisItem.setAmount(1);
-            boolean shopIsInfinite = ssArgs.isOperationParameter("infinite");
+            prizes[i] = thisItem;
+        }
 
-            if (shopIsInfinite) {
-                prizes[i] = thisItem;
-            }
-            else {
-                if (removeItemFromContainables(ssArgs, thisItem)) {
-                    prizes[i] = thisItem;
-                }
-                else {
+        if (!ssArgs.getPlayer().get().getVirtualInventory().isStockOK(prizes, false)) {
+            ssArgs.sendFailedRequirementsMessage("player_overstocked");
+            return false;
+        }
+
+        if (!ssArgs.isOperationParameter("infinite")) {
+            for (ItemStack item : prizes) {
+                if (!removeItemFromContainables(ssArgs, item)) {
+                    ssArgs.sendFailedRequirementsMessage("could_not_complete_operation");
+                    SignShopMysteryBox.log("Items did not exist while attempting to remove them from the shop!", Level.WARNING);
+                    SignShopMysteryBox.log("This should not happen. Please check shop at " + ssArgs.getSign().get().getLocation()
+                            + " and report to the developer.", Level.WARNING);
                     return false;
                 }
             }
-
         }
+
         ssArgs.getPlayer().get().givePlayerItems(prizes);
-        ssArgs.setMessagePart("!items",itemUtil.itemStackToString(prizes));
+        ssArgs.setMessagePart("!items", itemUtil.itemStackToString(prizes));
         return true;
     }
 
@@ -89,10 +94,10 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
             if (block.getState() instanceof InventoryHolder) {
                 InventoryHolder container = (InventoryHolder) block.getState();
                 for (ItemStack item : container.getInventory().getContents()) {
-                    if (item != null && item.getType() != Material.AIR){
+                    if (item != null && item.getType() != Material.AIR) {
                         ItemStack itemClone = item.clone();
                         int itemStackAmount = itemClone.getAmount();
-                        for (int i = 1; i <= itemStackAmount ; i++) {
+                        for (int i = 1; i <= itemStackAmount; i++) {
                             items.add(itemClone);
                         }
                     }
@@ -105,11 +110,15 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
     boolean removeItemFromContainables(SignShopArguments ssArgs, ItemStack item) {
         ItemStack[] itemStacks = {item};
         InventoryHolder Holder = itemUtil.getFirstStockOKForContainables(ssArgs.getContainables().get(), itemStacks, true);
-        if (Holder == null)
+        if (Holder == null) {
+            System.out.println("Holder is null.");
             return false;
+        }
         Holder.getInventory().removeItem(item);
         ssArgs.setMessagePart("!items", itemUtil.itemStackToString(ssArgs.getItems().get()));
         return true;
     }
+
+
 
 }
