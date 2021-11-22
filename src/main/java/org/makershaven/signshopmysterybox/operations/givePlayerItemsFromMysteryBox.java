@@ -3,6 +3,9 @@ package org.makershaven.signshopmysterybox.operations;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.Container;
+import org.bukkit.block.data.type.Hopper;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.makershaven.signshopmysterybox.SignShopMysteryBox;
@@ -51,18 +54,26 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
     @Override
     public Boolean runOperation(SignShopArguments ssArgs) {
         int prizeAmount = getPrizeAmount(ssArgs);
+        Map<Block, Boolean> connectedHoppers = lockConnectedHoppers(ssArgs);
         List<ItemStack> mysteryItems = getItemsInContainables(ssArgs);
         Collections.shuffle(mysteryItems, new Random(System.currentTimeMillis()));
         ItemStack[] prizes = new ItemStack[prizeAmount];
-
+        List<Integer> usedInts = new ArrayList<>();
         for (int i = 0; i < prizeAmount; i++) {
-            ItemStack thisItem = mysteryItems.get(new Random(System.currentTimeMillis() + i).nextInt(mysteryItems.size()));
+            int randomInt = randomInt(i,mysteryItems.size());
+            if (usedInts.contains(randomInt)){
+                i--;
+                continue;
+            }
+            usedInts.add(randomInt);
+            ItemStack thisItem = mysteryItems.get(randomInt);
             thisItem.setAmount(1);
             prizes[i] = thisItem;
         }
 
         if (!ssArgs.getPlayer().get().getVirtualInventory().isStockOK(prizes, false)) {
             ssArgs.sendFailedRequirementsMessage("player_overstocked");
+            unlockConnectedHoppers(connectedHoppers);
             return false;
         }
 
@@ -73,6 +84,7 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
                     SignShopMysteryBox.log("Items did not exist while attempting to remove them from the shop!", Level.WARNING);
                     SignShopMysteryBox.log("This should not happen. Please check shop at " + ssArgs.getSign().get().getLocation()
                             + " and report to the developer.", Level.WARNING);
+                    unlockConnectedHoppers(connectedHoppers);
                     return false;
                 }
             }
@@ -80,9 +92,63 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
 
         ssArgs.getPlayer().get().givePlayerItems(prizes);
         ssArgs.setMessagePart("!items", itemUtil.itemStackToString(prizes));
+        unlockConnectedHoppers(connectedHoppers);
         return true;
     }
 
+    private int randomInt(int iteration,int size){
+       return new Random(System.currentTimeMillis() + iteration).nextInt(size);
+    }
+
+    private Map<Block, Boolean> lockConnectedHoppers(SignShopArguments ssArgs) {
+        Map<Block, Boolean> connectedHoppers = new HashMap<>();
+        for (Block block : ssArgs.getContainables().get()) {
+            if (block instanceof Container) {
+                for (BlockFace face : BlockFace.values()){
+                    switch (face){
+                        case NORTH:
+                        case WEST:
+                        case EAST:
+                        case SOUTH:
+                        case UP:
+                        case DOWN:
+                        case SELF:{
+                            Block relativeBlock = block.getRelative(face);
+                            if (relativeBlock.getBlockData() instanceof Hopper){
+                                Hopper hopper = (Hopper) relativeBlock.getBlockData();
+                                connectedHoppers.put(relativeBlock,hopper.isEnabled());
+                                hopper.setEnabled(false);
+                            }
+                        }
+                           break;
+                        case NORTH_EAST:
+                        case NORTH_WEST:
+                        case SOUTH_EAST:
+                        case SOUTH_WEST:
+                        case WEST_NORTH_WEST:
+                        case NORTH_NORTH_WEST:
+                        case NORTH_NORTH_EAST:
+                        case EAST_NORTH_EAST:
+                        case EAST_SOUTH_EAST:
+                        case SOUTH_SOUTH_EAST:
+                        case SOUTH_SOUTH_WEST:
+                        case WEST_SOUTH_WEST:
+                            break;
+                    }
+                }
+            }
+        }
+        return connectedHoppers;
+    }
+
+    private void unlockConnectedHoppers(Map<Block, Boolean> hopperMap) {
+        for (Block block : hopperMap.keySet()) {
+            if (block.getBlockData() instanceof Hopper){
+                Hopper hopper = (Hopper) block.getBlockData();
+                hopper.setEnabled(hopperMap.get(block));
+            }
+        }
+    }
 
     int getPrizeAmount(SignShopArguments ssArgs) {
         return Math.max(1, signshopUtil.getNumberFromLine(ssArgs.getSign().get(), 1).intValue());
@@ -111,14 +177,12 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
         ItemStack[] itemStacks = {item};
         InventoryHolder Holder = itemUtil.getFirstStockOKForContainables(ssArgs.getContainables().get(), itemStacks, true);
         if (Holder == null) {
-            System.out.println("Holder is null.");
             return false;
         }
         Holder.getInventory().removeItem(item);
         ssArgs.setMessagePart("!items", itemUtil.itemStackToString(ssArgs.getItems().get()));
         return true;
     }
-
 
 
 }
