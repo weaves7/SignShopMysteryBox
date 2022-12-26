@@ -9,7 +9,7 @@ import org.bukkit.block.data.type.Hopper;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.makershaven.signshopmysterybox.SignShopMysteryBox;
-import org.wargamer2010.signshop.configuration.SignShopConfig;
+import org.wargamer2010.signshop.SignShop;
 import org.wargamer2010.signshop.operations.SignShopArguments;
 import org.wargamer2010.signshop.operations.SignShopOperation;
 import org.wargamer2010.signshop.util.itemUtil;
@@ -22,7 +22,7 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
     @Override
     public Boolean setupOperation(SignShopArguments ssArgs) {
         if (ssArgs.getContainables().isEmpty()) {
-            ssArgs.getPlayer().get().sendMessage(SignShopConfig.getError("chest_missing", ssArgs.getMessageParts()));
+            ssArgs.getPlayer().get().sendMessage(SignShop.getInstance().getSignShopConfig().getError("chest_missing", ssArgs.getMessageParts()));
             return false;
         }
 
@@ -53,12 +53,15 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
 
     @Override
     public Boolean runOperation(SignShopArguments ssArgs) {
+        long start = System.currentTimeMillis();
         int prizeAmount = getPrizeAmount(ssArgs);
-        Map<Block, Boolean> connectedHoppers = lockConnectedHoppers(ssArgs);
+       // Map<Block, Boolean> connectedHoppers = lockConnectedHoppers(ssArgs);
         List<ItemStack> mysteryItems = getItemsInContainables(ssArgs);
         Collections.shuffle(mysteryItems, new Random(System.currentTimeMillis()));
+        long afterShuffle = System.currentTimeMillis();
         ItemStack[] prizes = new ItemStack[prizeAmount];
         List<Integer> usedInts = new ArrayList<>();
+
         for (int i = 0; i < prizeAmount; i++) {
             int randomInt = randomInt(i,mysteryItems.size());
             if (usedInts.contains(randomInt)){
@@ -71,12 +74,13 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
             prizes[i] = thisItem;
         }
 
+        long afterPrizeLoop = System.currentTimeMillis();
         if (!ssArgs.getPlayer().get().getVirtualInventory().isStockOK(prizes, false)) {
             ssArgs.sendFailedRequirementsMessage("player_overstocked");
-            unlockConnectedHoppers(connectedHoppers);
+           // unlockConnectedHoppers(connectedHoppers);
             return false;
         }
-
+        long afterInvCheck = System.currentTimeMillis();
         if (!ssArgs.isOperationParameter("infinite")) {
             for (ItemStack item : prizes) {
                 if (!removeItemFromContainables(ssArgs, item)) {
@@ -84,15 +88,19 @@ public class givePlayerItemsFromMysteryBox implements SignShopOperation {
                     SignShopMysteryBox.log("Items did not exist while attempting to remove them from the shop!", Level.WARNING);
                     SignShopMysteryBox.log("This should not happen. Please check shop at " + ssArgs.getSign().get().getLocation()
                             + " and report to the developer.", Level.WARNING);
-                    unlockConnectedHoppers(connectedHoppers);
+                   // unlockConnectedHoppers(connectedHoppers);
                     return false;
                 }
             }
         }
-
+        long afterChestLoop = System.currentTimeMillis();
         ssArgs.getPlayer().get().givePlayerItems(prizes);
         ssArgs.setMessagePart("!items", itemUtil.itemStackToString(prizes));
-        unlockConnectedHoppers(connectedHoppers);
+       /* SignShopMysteryBox.debug("GPIFMB Shuffle, "+(afterShuffle-start)+"ms");
+        SignShopMysteryBox.debug("GPIFMB Prize Loop, "+(afterPrizeLoop-afterShuffle)+"ms");
+        SignShopMysteryBox.debug("GPIFMB Check Inv, "+(afterInvCheck-afterPrizeLoop)+"ms");
+        SignShopMysteryBox.debug("GPIFMB Remove Items, "+(afterChestLoop-afterInvCheck)+"ms");*/
+       // unlockConnectedHoppers(connectedHoppers);
         return true;
     }
 
