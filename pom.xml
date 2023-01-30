@@ -6,10 +6,11 @@
 
     <groupId>org.example</groupId>
     <artifactId>SignShopMysteryBox</artifactId>
-    <version>0.2.1.0-ALPHA</version>
+    <version>1.0.0.0-BETA</version>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <repositories>
         <repository>
@@ -42,7 +43,7 @@
         <dependency>
             <groupId>org.wargamer2010</groupId>
             <artifactId>SignShop</artifactId>
-            <version>3.7.1</version>
+            <version>3.7.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
